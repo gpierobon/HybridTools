@@ -2,11 +2,13 @@
 
 #PBS -l select=1:ncpus=8:mem=5gb
 #PBS -l walltime=1:00:00
-#PBS -N preGadget
+#PBS -N preSim
 
 module purge
-module load python/3.3.9
+module load gcc gsl openmpi python/3.9.9
 
-export OMP_NUM_THREADS=$PBS_NCPUS
+export $OMP_NUM_THREADS=8
+
+cd $PBS_O_WORKDIR
 
 bash pre.sh
