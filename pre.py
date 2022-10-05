@@ -1,5 +1,7 @@
 import sys
+import h5py as  h5
 import numpy as np
+import cmasher as cmr
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 
@@ -15,6 +17,10 @@ zf       = int(sys.argv[8])
 
 out_pk   = sys.argv[9]
 out_f    = sys.argv[10]
+
+pindex   = int(sys.argv[11])
+sn_base  = sys.argv[12]
+sn_num   = sys.argv[13]
 
 #####################################################################################################
 
@@ -78,6 +84,29 @@ def scale_back(fclass,fmflr,simfol,f_pk,f_f):
 
 #def restart_hybrid():
 
+def projection(snap_base,snap_num,ptype,axis,mtype):
+    snapshot  = str(simfol)+'/'+str(snap_base)+f'_00{snap_num}'
+    f = h5.File(str(snapshot)+'.hdf5','r')
+    z = f['Header'].attrs['Redshift']
+    L = f['Header'].attrs['BoxSize']
+    grid  = f['Parameters'].attrs['GridSize']
+    BoxSize = L
+    ptypes  = ptype                   
+    MAS       = 'CIC'               
+    verbose   = True
+    threads   = 4
+    delta     = MASL.density_field_gadget(snapshot, ptypes, grid, MAS, do_RSD=False, axis=0, verbose=verbose)
+    fig,ax = plt.subplots(1,1,figsize=(13,12))
+    im = ax.imshow(np.log10(np.mean(delta,axis=axis)),cmap='cmr.%s'%mtype,origin='lower',extent=[-L/2,L/2,-L/2,L/2])
+    plt.colorbar(im)
+    ax.set_xlabel(r'$x~({\rm Mpc}/h)$')
+    ax.set_ylabel(r'$y~({\rm Mpc}/h)$')
+    print('Saving plot in %s'%(str(simfol)+'/plots'))
+    if len(ptype) > 1:
+        fig.savefig(str(simfol)+'/plots/'+'ptype_%d-%d_z%.1f.pdf'%(ptype[0],ptype[-1],z),bbox_inches='tight')
+    else:
+        fig.savefig(str(simfol)+'/plots/'+'ptype_%d_z%.1f.pdf'%(ptype[0],z),bbox_inches='tight')
+
 #def plot_check():
 #    fig,ax = plt.subplots(1,1,figsize=(8,7))
 #    ax.loglog(k,Pk_class,label='raw')
@@ -96,5 +125,24 @@ if key == 'pre_sim':
         #restart_hybrid()
         raise Exception ("Not implemented yet!")
 
-#if key == 'post_sim':
-    # Post processing 
+if ptype == 2:
+    import MAS_library as MASL
+    
+    axis = 0
+    cmap = 'pride'
+
+    if pindex == 0:
+        ptypes = [1,2,3,4,5] # To fix for multiple streams 
+        projection(sn_base,sn_num,ptypes,axis,cmap)
+    
+    elif pindex == 1:
+        ptypes = [1]  
+        projection(sn_base,sn_num,ptypes,axis,cmap)
+
+    elif pindex == 2:
+        ptypes = [5] # To fix for multiple streams 
+        projection(sn_base,sn_num,ptypes,axis,cmap)
+
+
+
+

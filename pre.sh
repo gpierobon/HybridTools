@@ -1,12 +1,12 @@
 #!/bin/bash
 
-#######################################################################################################
-ptype=0                                              # 0: Start           (SuperEasy/MFLR/Hybrid)
+####################################################################################################################################
+ptype=2                                              # 0: Start           (SuperEasyLR/MFLR/Hybrid)
                                                      # 1: Restart         (Hybrid only)
-                                                     # 2: Postprocessing  (SuperEasy/MFLR/Hybrid)
+                                                     # 2: Postprocessing  (SuperEasyLR/MFLR/Hybrid)
 
 # Paths
-SimFolder='./sim'                                    # Path to simulation folder
+SimFolder='./simdir'                                 # Path to simulation folder
 Class_Path='/srv/scratch/cppcnbody/class_public'     # Path to class      (Set in our shared folder)
 MuFLR_Path='/srv/scratch/cppcnbody/MuFLR'            # Path to mf module  (Set in our shared folder)
 Hybrid_Path='/srv/scratch/cppcnbody/gadget4-hybrid'  # Path to hybrid     (Set in our shared folder)
@@ -21,16 +21,22 @@ Opt=0                                                # Print options. 0: D_cb, f
 zi=200                                               # Initial redshift for MuFLR
 zf=49                                                # Output redshift (gadget4 initial redshift)
 
-# Opts for starting run
-PkOut='Pk_ini'                                       # Rescaled Pk, .txt file found in SimFolder
-GFOut='GrFact_ini'                                   # Growth factor, .txt file found in SimFolder
+# Opts for preprocessing
+PkOut='P_k_ini'                                      # PowerSpectrumFile in param, .txt file found in SimFolder
+GFOut='GrFact_ini'                                   # GrowthRateFile in param, .txt file found in SimFolder
+CBOut='P_m_ini'                                      # CBPowerSpectrumFile in param, .txt file (hybrid_only)       
+Stream=0                                             
+NumStreams=0                                         
 
-# Opts for restarting run
-Stream=0                                             # Stream number
-NumStreams=0                                         # Number of streams 
 # Opts for postprocessing
+pindex=0                                             # 0: Projection plot all
+                                                     # 1: Projection plot cdm only
+                                                     # 2: Projection plot neutrinos only
+                                                     # 3: Power Spectrum particles + neutrino fluids 
+snap_base=snapshot
+snap_number=1
 
-#######################################################################################################
+####################################################################################################################################
 
 mkdir -p $SimFolder  
 ClassOut=raw_files/$ClassFile'_pk'              
@@ -77,12 +83,19 @@ case $ptype in
     
     1) 
     echo 'Restart Hybrid simulation in folder' $SimFolder
+    #echo 'Converting' 'streams in' 'batch(es)'
+    m=0.31
+    c=299792458
+    tau=$(sed -n '1p' raw_files/$MfOut.txt | awk '{print $4}')
+    Stream_Vel=$(echo "$tau/$m*$c/1000 " | bc -l)
+    echo 'The stream velocity is '$Stream_Vel 'km/s'
     
     ;;
 
     2)
+    mkdir -p $SimFolder/plots
     echo 'Post-processing simulation from folder' $SimFolder
-
+    python3 pre.py post_sim $ptype $ClassOut raw_files/$MfOut $SimFolder $Opt $zi $zf $PkOut $GFOut $pindex $snap_base $snap_number 
     ;;
 esac
 
