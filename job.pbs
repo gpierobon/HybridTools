@@ -5,7 +5,7 @@
 #PBS -N preSim
 
 module purge
-module load gcc gsl openmpi python/3.9.9
+module load gcc gsl openmpi
 
 source /srv/scratch/cppcnbody/py_venv/bin/activate
 
@@ -13,4 +13,4 @@ export $OMP_NUM_THREADS=8
 
 cd $PBS_O_WORKDIR
 
-bash pre.sh
+bash htools.sh
