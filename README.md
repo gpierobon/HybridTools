@@ -12,10 +12,12 @@ A. Upadhye is the author of the [MuFLR](https://github.com/upadhye/MuFLR) code.<
   
  ## Usage
  
- ```
- git clone https://github.com/gpierobon/HybridTools
- cd HybridTools
- bash htools.sh
+```
+git clone https://github.com/gpierobon/HybridTools; cd HybridTools
+```
+Adjust parameters in the htools.sh file and then run:
+```
+bash htools.sh
 ```
 
 ## Requirements
